@@ -33,11 +33,19 @@ app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[shortURL]
   res.redirect(longURL);
 });
+
 app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
   res.redirect("/urls")
 })
+app.post('/urls/:id', (req, res) => {
+  const shortURL = req.params.id;
+  const newURL = req.body.longURL;
+  urlDatabase[shortURL] = newURL;
+  res.redirect('/urls');
+});
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
