@@ -5,7 +5,16 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 function generateRandomString() { return Math.random().toString(36).substr(2, 6); }
 
-app.use(bodyParser.urlencoded({ extended: true }));
+const getUserById = (email, database) => {
+  for (let id in database) {
+    if (email === database[id].email) {
+      const user = database[id]
+      return user
+    }
+  }
+}
+
+  app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.set("view engine", "ejs");
@@ -19,7 +28,7 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: "pwd"
   },
   "user2RandomID": {
     id: "user2RandomID",
@@ -39,8 +48,8 @@ app.get("/urls", (req, res) => {
   }
 });
 
-app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+app.get("/new", (req, res) => {
+  res.render("urls_new", { user: null});
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -70,18 +79,22 @@ app.post('/urls/:id', (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const templateVars = {
-    username: req.cookies["username"],
-    // ... any other vars
-  };
-  res.cookie("username", username);
-  const username = req.body.username;
-  res.redirect('/urls')
+  const { email, password } = req.body
+  console.log(email,password)
+  let user = getUserById(email, users);
+  if (user.password === password){
+    res.cookie("user_id", user.id)
+    return res.redirect('/urls')
+  }
+  else{
+    return res.status(403).send('error 403');
+  }
 });
 
 app.get("/login",(req,res) => {
-  return res.render("login", { users })
+  return res.render("urls_login", { user: null })
 })
+
 app.get("/logout", (req,res) => {
   return res.redirect("/urls") 
 })
@@ -90,25 +103,22 @@ app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   return res.redirect("/urls");
 });
-// app.get("/register", (req, res) => {
-//   const templateVars = users.email;
-//   res.render("urls_register", templateVars)
-// })
+
 app.get("/register", (req, res) => {
-  return res.render("urls_register", { users });
+  return res.render("urls_register", { user: null });
 });
 
 app.post("/register", (req, res) => {
-  const { email, password } = req.body;;
+  const { email, password } = req.body;
   const user_id = generateRandomString();
   if(email === '' || password === '' ) {
-    res.status(400)
-    return res.send('error 400');
+    
+    return res.status(400).send('error 400');
   }
   for (let key in users) {
     if (email === users[key][email]){
-      res.status(400)
-      return res.send('error 400');
+      return res.status(400).send('error 400');
+      
     }
   }
   users[user_id] = { id: user_id, email, password: password };
