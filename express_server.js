@@ -3,18 +3,21 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-function generateRandomString() { return Math.random().toString(36).substr(2, 6); }
+
+const generateRandomString = () => { 
+  return Math.random().toString(36).substr(2, 6);
+ }
 
 const getUserById = (email, database) => {
   for (let id in database) {
     if (email === database[id].email) {
-      const user = database[id]
-      return user
+      const user = database[id];
+      return user;
     }
   }
-}
+};
 
-  app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.set("view engine", "ejs");
@@ -48,21 +51,35 @@ app.get("/urls", (req, res) => {
   }
 });
 
-app.get("/new", (req, res) => {
+app.get("/urls/new", (req, res) => {
   res.render("urls_new", { user: null});
 });
 
-app.get("/urls/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL]
-  const templateVars = { shortURL: shortURL, longURL: longURL };
-  res.render("urls_show", templateVars);
+app.post("/urls", (req, res) => {
+  const longURL = req.body;
+  for ( let url in urlDatabase) {
+    if(longURL !== urlDatabase[url]){
+      const shortURL = generateRandomString();
+      urlDatabase[shortURL] = longURL;
+      return res.redirect("/urls/:shortURL")
+    }
+  }
+  console.log(req.body);  // Log the POST request body to the console
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
-app.get("/u/:shortURL", (req, res) => {
+
+app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL]
-  res.redirect(longURL);
+  const longURL = urlDatabase[shortURL];
+  const userID = req.cookies.user_id
+  if (users[userID] === undefined) {
+  const templateVars = { shortURL: shortURL, longURL: longURL, user: undefined };
+  }else {
+    const templateVars = { shortURL: shortURL, longURL: longURL, user: users[userID] };
+    res.render("urls_index", templateVars);
+ }
+  
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
@@ -129,11 +146,6 @@ app.post("/register", (req, res) => {
 
 app.get("/", (req, res) => {
   res.send("Hello!");
-});
-
-app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls.json", (req, res) => {
