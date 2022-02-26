@@ -23,8 +23,14 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW"
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW"
+  }
 };
 
 const users = {
@@ -54,9 +60,10 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   for (let url in urlDatabase) {
-    if (longURL !== urlDatabase[url]) {
+    if (longURL !== urlDatabase[url][longURL]) {
       const shortURL = generateRandomString();
-      urlDatabase[shortURL] = longURL;
+      urlDatabase[shortURL][longURL] = longURL;
+      console/log(longURL)
       return res.redirect("/urls")
     }
   }
@@ -65,12 +72,17 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new", { user: null});
+  const userID = req.cookies.user_id;
+
+  res.render("urls_new", { user: users[userID]});
 });
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL];
+  if(!urlDatabase[shortURL]){
+    return res.send("id is not exist")
+  }
+  const longURL = urlDatabase[shortURL][longURL];
   
   res.render(longURL)
 });
@@ -85,7 +97,7 @@ app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL
   const userID = req.cookies.user_id
   if (users[userID] === undefined) {
-    const templateVars = { shortURL, user: undefined };
+    return res.redirect("/login")
   } else {
     const templateVars = { shortURL, user: users[userID] };
     return res.render("urls_show", templateVars);
@@ -95,7 +107,7 @@ app.get("/urls/:shortURL", (req, res) => {
 app.post('/urls/:id', (req, res) => {
   const shortURL = req.params.id;
   const newURL = req.body.longURL;
-  urlDatabase[shortURL] = newURL;
+  urlDatabase[shortURL][longURL] = newURL;
   res.redirect('/urls');
 });
 
@@ -141,7 +153,6 @@ app.post("/register", (req, res) => {
     }
   }
   users[user_id] = { id: user_id, email, password: password };
-  
   res.cookie("user_id", user_id);
   res.redirect("/urls");
   });
