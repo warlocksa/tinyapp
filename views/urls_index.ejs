@@ -24,7 +24,17 @@
           <th scope="col">Delete</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody></div>
+      <% if(!user) { %>
+        <div>
+          <label for="text"><b>Please loging or regitster.</b></label>
+          <% } %>
+      
+        </div>
+        <% if(user){ %>
+      
+          
+        
         <% for(let url in urls) { %>
           <tr>
             <td>
@@ -52,6 +62,7 @@
             </td>
           </tr>
           <% } %>
+            <% } %>
       </tbody>
     </table>
   </main>

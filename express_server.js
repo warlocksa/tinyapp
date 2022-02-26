@@ -80,10 +80,9 @@ app.get("/urls/new", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   if(!urlDatabase[shortURL]){
-    return res.send("id is not exist")
+    return res.send("id is not login")
   }
   const longURL = urlDatabase[shortURL][longURL];
-  
   res.render(longURL)
 });
 
