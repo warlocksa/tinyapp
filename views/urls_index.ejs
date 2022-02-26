@@ -28,17 +28,21 @@
         <% for(let url in urls) { %>
           <tr>
             <td>
-              <%= url %>
-            </td>
-
-            <td>
-              <%= urls[url] %>           
+              <%= url %></a>
+            
             </td>
 
             <td>
               <form method="GET" action="/urls/<%= url %>">
-                <button type="submit" class="btn btn-outline-primary">Edit</button>
+                <a class="nav-item nav-link" href="<%= urls[url] %>"><%= urls[url] %></a>
               </form>
+                  
+            </td>
+
+            <td>
+            
+                <a class="nav-item nav-link" href="/urls/<%=url %>"><button type="submit" class="btn btn-success">Edit</button></a>
+            
             </td>
               
             <td>

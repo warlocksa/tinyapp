@@ -16,7 +16,7 @@
 
     <main style="margin: 1em;">
       <h3>Create TinyURL</h3>
-      <form action="/new" method="POST">
+      <form action="/urls" method="POST">
         <div class="form-group mb-2">
           <label for="longURL">Enter a URL:</label>
           <input class="form-control" type="text" name="longURL" placeholder="http://"
@@ -24,9 +24,7 @@
           <button type="submit" class="btn btn-primary">Submit</button>
         </div>
       </form>
-      <form action="/urls" method="POST">
-        <input class="form-control" type="text" name="longURL">
-      </form>
+    
   </main>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

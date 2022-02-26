@@ -51,41 +51,45 @@ app.get("/urls", (req, res) => {
   }
 });
 
+app.post("/urls", (req, res) => {
+  const longURL = req.body.longURL;
+  for (let url in urlDatabase) {
+    if (longURL !== urlDatabase[url]) {
+      const shortURL = generateRandomString();
+      urlDatabase[shortURL] = longURL;
+      return res.redirect("/urls")
+    }
+  }
+  console.log(req.body);  
+  res.send("Ok");         
+});
+
 app.get("/urls/new", (req, res) => {
   res.render("urls_new", { user: null});
 });
 
-app.post("/urls", (req, res) => {
-  const longURL = req.body;
-  for ( let url in urlDatabase) {
-    if(longURL !== urlDatabase[url]){
-      const shortURL = generateRandomString();
-      urlDatabase[shortURL] = longURL;
-      return res.redirect("/urls/:shortURL")
-    }
-  }
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
-});
-
-
-app.get("/urls/:shortURL", (req, res) => {
+app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
-  const userID = req.cookies.user_id
-  if (users[userID] === undefined) {
-  const templateVars = { shortURL: shortURL, longURL: longURL, user: undefined };
-  }else {
-    const templateVars = { shortURL: shortURL, longURL: longURL, user: users[userID] };
-    res.render("urls_index", templateVars);
- }
   
+  res.render(longURL)
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
   res.redirect("/urls")
+})
+
+app.get("/urls/:shortURL", (req, res) => {
+  let shortURL = req.params.shortURL
+  const userID = req.cookies.user_id
+  if (users[userID] === undefined) {
+    const templateVars = { shortURL, user: undefined };
+  } else {
+    const templateVars = { shortURL, user: users[userID] };
+    return res.render("urls_show", templateVars);
+  }
 })
 
 app.post('/urls/:id', (req, res) => {
@@ -129,13 +133,11 @@ app.post("/register", (req, res) => {
   const { email, password } = req.body;
   const user_id = generateRandomString();
   if(email === '' || password === '' ) {
-    
     return res.status(400).send('error 400');
   }
   for (let key in users) {
     if (email === users[key][email]){
       return res.status(400).send('error 400');
-      
     }
   }
   users[user_id] = { id: user_id, email, password: password };
