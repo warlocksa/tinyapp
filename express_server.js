@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 // const cookieParser = require("cookie-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
-const getUserByEmail = require('getUserByEmail')
+const { getUserByEmail } = require('./helpers.js');
 
 const generateRandomString = () => { 
   return Math.random().toString(36).substr(2, 6);
@@ -14,7 +14,7 @@ const generateRandomString = () => {
 app.use(bodyParser.urlencoded({ extended: true }));
 // app.use(cookieParser());
 app.use(cookieSession({
-  name: 'cookiemonster',
+  name: 'session',
   keys: ['my secret key', 'yet another secret key']
 }));
 
@@ -114,7 +114,7 @@ app.post("/login", (req, res) => {
   bcrypt.compare(user.password, hashedPassword)
   .then((result) => {
     if (result) {
-      res.session.user_id = user.id
+      req.session.user_id = user.id
       return res.redirect('/urls')
     } else {
       return res.status(403).send('please enter the right password');
@@ -139,7 +139,7 @@ app.get("/logout", (req,res) => {
 })
 
 app.post("/logout", (req, res) => {
-  res.session = null;
+  req.session = null;
   return res.redirect("/urls");
 });
 
@@ -160,7 +160,7 @@ app.post("/register", (req, res) => {
     }
   }
   users[user_id] = { id: user_id, email, password: hashedPassword };
-  res.session.user_id = user_id;
+  req.session.user_id = user_id;
   res.redirect("/urls");
   // const user_id = generateRandomString();
   // const { email, password } = req.body;
