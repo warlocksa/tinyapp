@@ -20,7 +20,7 @@ describe('getUserByEmail', function () {
     const user = getUserByEmail("user@example.com", testUsers)
     const expectedUserID = "userRandomID";
     // Write your assert statement here
-    assert.deepEqual(user, expectedUserID)
+    assert.deepEqual(user.id, expectedUserID)
   });
   it('should retrun undefined with a non-existent email', function() {
     const user = getUserByEmail("user999@example.com", testUsers)
