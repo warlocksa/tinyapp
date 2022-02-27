@@ -141,7 +141,7 @@ app.post("/register", (req, res) => {
     return res.status(400).send('please enter the email and password');
   }
   for (let key in users) {
-    if (users[key] = { email: email }) {
+    if (users[key].email === email) {
       return res.status(400).send('this email already used');
     }
   }
