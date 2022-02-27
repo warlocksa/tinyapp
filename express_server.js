@@ -2,24 +2,21 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+// const cookieParser = require("cookie-parser");
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
+const getUserByEmail = require('getUserByEmail')
 
 const generateRandomString = () => { 
   return Math.random().toString(36).substr(2, 6);
  }
 
-const getUserById = (email, database) => {
-  for (let id in database) {
-    if (email === database[id].email) {
-      const user = database[id];
-      return user;
-    }
-  }
-};
-
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
+// app.use(cookieParser());
+app.use(cookieSession({
+  name: 'cookiemonster',
+  keys: ['my secret key', 'yet another secret key']
+}));
 
 app.set("view engine", "ejs");
 
@@ -48,7 +45,7 @@ const users = {
 }
 
 app.get("/urls", (req, res) => {
-  const userID = req.cookies.user_id
+  const userID = req.session.user_id
   if(users[userID] === undefined) {
     const templateVars = { urls: urlDatabase, user: undefined };
     res.render("urls_index", templateVars);
@@ -73,8 +70,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const userID = req.cookies.user_id;
-
+  const userID = req.session.user_id;
   res.render("urls_new", { user: users[userID]});
 });
 
@@ -95,7 +91,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL
-  const userID = req.cookies.user_id
+  const userID = req.session.user_id
   if (users[userID] === undefined) {
     return res.redirect("/login")
   } else {
@@ -113,12 +109,12 @@ app.post('/urls/:id', (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body
-  let user = getUserById(email, users);
+  let user = getUserByEmail(email, users);
   const hashedPassword = bcrypt.hashSync(password, 10);
   bcrypt.compare(user.password, hashedPassword)
   .then((result) => {
     if (result) {
-      res.cookie("user_id", user.id)
+      res.session.user_id = user.id
       return res.redirect('/urls')
     } else {
       return res.status(403).send('please enter the right password');
@@ -143,7 +139,7 @@ app.get("/logout", (req,res) => {
 })
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  res.session = null;
   return res.redirect("/urls");
 });
 
@@ -164,7 +160,7 @@ app.post("/register", (req, res) => {
     }
   }
   users[user_id] = { id: user_id, email, password: hashedPassword };
-  res.cookie("user_id", user_id);
+  res.session.user_id = user_id;
   res.redirect("/urls");
   // const user_id = generateRandomString();
   // const { email, password } = req.body;
