@@ -57,8 +57,11 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const userID = req.session.user_id;
+  if (users[userID] === undefined) {
+    return res.redirect("/login");
+  } else {
   res.render("urls_new", { user: users[userID] });
-});
+}});
 
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
@@ -82,6 +85,10 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
+  const userID = req.session.user_id;
+  if (users[userID] === undefined) {
+    return res.redirect("/login");
+  } else {
   for (let url in urlDatabase) {
     if (longURL !== urlDatabase[url][longURL]) {
       const shortURL = generateRandomString();
@@ -92,7 +99,7 @@ app.post("/urls", (req, res) => {
     }
   }
   res.send("Ok");
-});
+}});
 
 app.post('/urls/:id', (req, res) => {
   const shortURL = req.params.id;
