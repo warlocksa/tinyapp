@@ -45,7 +45,7 @@ const users = {
 }
 
 app.get("/urls", (req, res) => {
-  const userID = req.session.user_id
+  const userID = req.session.user_id;
   if (users[userID] === undefined) {
     const templateVars = { urls: urlDatabase, user: undefined };
     res.render("urls_index", templateVars);
@@ -55,51 +55,44 @@ app.get("/urls", (req, res) => {
   }
 });
 
-app.post("/urls", (req, res) => {
-  const longURL = req.body.longURL;
-  for (let url in urlDatabase) {
-    if (longURL !== urlDatabase[url][longURL]) {
-      const shortURL = generateRandomString();
-      urlDatabase[shortURL]= {
-        longURL: longURL
-      }
-      return res.redirect("/urls")
-    }
-  }
-  console.log(req.body);
-  res.send("Ok");
-});
-
 app.get("/urls/new", (req, res) => {
   const userID = req.session.user_id;
   res.render("urls_new", { user: users[userID] });
 });
 
-app.get("/u/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
-  if (!urlDatabase[shortURL]) {
-    return res.send("id is not login")
-  }
-  const longURL = urlDatabase[shortURL][longURL];
-  res.render(longURL)
-});
-
-app.post('/urls/:shortURL/delete', (req, res) => {
-  const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  res.redirect("/urls")
-})
-
 app.get("/urls/:shortURL", (req, res) => {
-  let shortURL = req.params.shortURL
-  const userID = req.session.user_id
+  let shortURL = req.params.shortURL;
+  const userID = req.session.user_id;
   if (users[userID] === undefined) {
-    return res.redirect("/login")
+    return res.redirect("/login");
   } else {
     const templateVars = { shortURL, user: users[userID] };
     return res.render("urls_show", templateVars);
   }
 })
+
+app.get("/u/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  if (!urlDatabase[shortURL]) {
+    return res.send("id is not login");
+  }
+  const longURL = urlDatabase[shortURL][longURL];
+  res.render(longURL);
+});
+
+app.post("/urls", (req, res) => {
+  const longURL = req.body.longURL;
+  for (let url in urlDatabase) {
+    if (longURL !== urlDatabase[url][longURL]) {
+      const shortURL = generateRandomString();
+      urlDatabase[shortURL] = {
+        longURL: longURL
+      }
+      return res.redirect("/urls");
+    }
+  }
+  res.send("Ok");
+});
 
 app.post('/urls/:id', (req, res) => {
   const shortURL = req.params.id;
@@ -110,36 +103,34 @@ app.post('/urls/:id', (req, res) => {
   res.redirect('/urls');
 });
 
+app.post('/urls/:shortURL/delete', (req, res) => {
+  const shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
+  res.redirect("/urls");
+});
+
+
+app.get("/login", (req, res) => {
+  return res.render("urls_login", { user: null });
+});
+
+app.get("/register", (req, res) => {
+  return res.render("urls_register", { user: null });
+});
+
 app.post("/login", (req, res) => {
-  const { email, password } = req.body
+  const { email, password } = req.body;
   let user = getUserByEmail(email, users);
   const hashedPassword = bcrypt.hashSync(password, 10);
   bcrypt.compare(user.password, hashedPassword)
     .then((result) => {
       if (result) {
-        req.session.user_id = user.id
-        return res.redirect('/urls')
+        req.session.user_id = user.id;
+        return res.redirect('/urls');
       } else {
         return res.status(403).send('please enter the right password');
       }
-    });
-});
-
-app.get("/login", (req, res) => {
-  return res.render("urls_login", { user: null })
-})
-
-app.get("/logout", (req, res) => {
-  return res.redirect("/urls")
-})
-
-app.post("/logout", (req, res) => {
-  req.session = null;
-  return res.redirect("/urls");
-});
-
-app.get("/register", (req, res) => {
-  return res.render("urls_register", { user: null });
+    })
 });
 
 app.post("/register", (req, res) => {
@@ -159,8 +150,10 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
+
+app.post("/logout", (req, res) => {
+  req.session = null;
+  return res.redirect("/urls");
 });
 
 app.get("/urls.json", (req, res) => {
