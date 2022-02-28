@@ -174,7 +174,7 @@ app.post("/login", (req, res) => {
   const { email, password } = req.body;
   let user = getUserByEmail(email, users);
   if (!uesr){
-    return res.send("Please use the right email"
+    return res.send("Please use the right email");
   } 
   const hashedPassword = bcrypt.hashSync(password, 10);
   bcrypt.compare(user.password, hashedPassword)
