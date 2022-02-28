@@ -173,14 +173,17 @@ app.get("/register", (req, res) => {
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   let user = getUserByEmail(email, users);
+  if (!uesr){
+    return res.send("Please use the right email"
+  } 
   const hashedPassword = bcrypt.hashSync(password, 10);
   bcrypt.compare(user.password, hashedPassword)
     .then((result) => {
       if (result) {
         req.session.user_id = user.id;
-        return res.redirect('/urls');
+        return res.redirect("/urls");
       } else {
-        return res.status(403).send('please enter the right password');
+        return res.status(403).send("please enter the right password");
       }
     })
 });

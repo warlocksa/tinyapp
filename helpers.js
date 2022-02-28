@@ -12,9 +12,6 @@ const getUserByEmail = (email, database) => {
 const getUrlsOfUser = (userId, database) => {
   let urlObj = {};
   for (let urlId in database) {
-    // if (database[urlId].userID === 'all') {
-    //   urlObj[urlId] = database[urlId]
-    // }
     if (database[urlId].userID === userId) {
       urlObj[urlId] = database[urlId]
     }
