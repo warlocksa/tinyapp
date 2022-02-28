@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
-// const cookieParser = require("cookie-parser");
+
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 const { getUserByEmail, getUrlsOfUser, getlongURLFromShortURL,generateRandomString } = require('./helpers.js');
@@ -11,7 +11,7 @@ const { send } = require("express/lib/response");
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(cookieParser());
+
 app.use(cookieSession({
   name: 'session',
   keys: ['my secret key', 'yet another secret key']
@@ -131,7 +131,7 @@ app.post('/urls/:id', (req, res) => {
   const shortURL = req.params.id;
   const newURL = req.body.longURL;
   const userID = req.session.user_id;
-  if (users[userID] === undefined) {
+  if (!users[userID]) {
     return res.send("please login");
   } else {
     urlDatabase[shortURL] = {
@@ -144,9 +144,14 @@ app.post('/urls/:id', (req, res) => {
 
 //delete element
 app.post('/urls/:shortURL/delete', (req, res) => {
-  const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  res.redirect("/urls");
+  // const userID = req.session.user_id;
+  // if (users[userID] === undefined) {
+  //   return res.redirect("/login");
+  // } else {
+    const shortURL = req.params.shortURL;
+    delete urlDatabase[shortURL];
+    res.redirect("/urls");
+  // }
 });
 
 //login
@@ -172,23 +177,32 @@ app.get("/register", (req, res) => {
 //login post
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  for (let user in users) {
-    if(users[user].email !== email) {
+    let user = getUserByEmail(email, users);
+    if(!user) {
       return res.send("Please login with the right email");
-    }
-  }
-  let user = getUserByEmail(email, users);
-  const hashedPassword = bcrypt.hashSync(password, 10);
-  bcrypt.compare(user.password, hashedPassword)
-    .then((result) => {
-      if (result) {
-        req.session.user_id = user.id;
-        return res.redirect("/urls");
-      } else {
+    } 
+    if (!bcrypt.compareSync(password, user.password)){
         return res.status(403).send("please enter the right password");
       }
+      req.session.user_id = user.id;
+      res.redirect("/urls");
     })
-});
+
+      // const hashedPassword = bcrypt.hashSync(password, 10);
+      // bcrypt.compare(user.password, hashedPassword)
+      //   .then((result) => {
+      //     if (result) {
+      //       req.session.user_id = user.id;
+      //       return res.redirect("/urls");
+      //     } else {
+      //       
+      //     }
+      //   })
+    // } else {
+  //   // 
+  //   // }
+  // }
+
 
 //register post
 app.post("/register", (req, res) => {

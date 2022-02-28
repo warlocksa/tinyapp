@@ -3,8 +3,8 @@ const { all } = require("express/lib/application");
 const getUserByEmail = (email, database) => {
   for (let id in database) {
     if (email === database[id].email) {
-      const userID = database[id];
-      return userID;
+      const user = database[id];
+      return user;
     }
   } return undefined;
 };
