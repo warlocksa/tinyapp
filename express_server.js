@@ -5,13 +5,10 @@ const bodyParser = require("body-parser");
 // const cookieParser = require("cookie-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
-const { getUserByEmail, getUrlsOfUser, getlongURLFromShortURL } = require('./helpers.js');
+const { getUserByEmail, getUrlsOfUser, getlongURLFromShortURL,generateRandomString } = require('./helpers.js');
 const { send } = require("express/lib/response");
 
 
-const generateRandomString = () => {
-  return Math.random().toString(36).substr(2, 6);
-}
 
 app.use(bodyParser.urlencoded({ extended: true }));
 // app.use(cookieParser());

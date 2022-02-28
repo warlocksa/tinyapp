@@ -31,4 +31,9 @@ const getlongURLFromShortURL = (userId, database, shortURL) => {
   return null;
 };
 
-module.exports = { getUserByEmail, getUrlsOfUser, getlongURLFromShortURL };
+
+const generateRandomString = () => {
+  return Math.random().toString(36).substr(2, 6);
+}
+
+module.exports = { getUserByEmail, getUrlsOfUser, getlongURLFromShortURL, generateRandomString };
