@@ -172,10 +172,12 @@ app.get("/register", (req, res) => {
 //login post
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
+  for (let user in users) {
+    if(users[user].email !== email) {
+      return res.send("Please login with the right email");
+    }
+  }
   let user = getUserByEmail(email, users);
-  if (!uesr){
-    return res.send("Please use the right email");
-  } 
   const hashedPassword = bcrypt.hashSync(password, 10);
   bcrypt.compare(user.password, hashedPassword)
     .then((result) => {
