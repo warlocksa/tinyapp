@@ -36,17 +36,9 @@ const urlDatabase = {
   }
 };
 
+//empty the database
 const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "pwd"
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "pwd2"
-  }
+  
 };
 
 app.get("/", (req, res) => {
@@ -61,8 +53,8 @@ app.get("/", (req, res) => {
 //homepage and redirect to login without login
 app.get("/urls", (req, res) => {
   const userID = req.session.user_id;
-  if (users[userID] === undefined) {
-    return res.redirect("/login");
+  if (!users[userID]) {
+    return res.send("please login");
   } else {
     const urlDatabase2 = getUrlsOfUser(userID,urlDatabase);
     const templateVars = { urls: urlDatabase2, user: users[userID] };
@@ -73,7 +65,7 @@ app.get("/urls", (req, res) => {
 //create the new url
 app.get("/urls/new", (req, res) => {
   const userID = req.session.user_id;
-  if (users[userID] === undefined) {
+  if (!users[userID]) {
     return res.redirect("/login");
   } else {
   res.render("urls_new", { user: users[userID] });
@@ -83,7 +75,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
   const userID = req.session.user_id;
-  if (users[userID] === undefined) {
+  if (!users[userID]) {
     return res.send("please login");
   } else {
     let url = getlongURLFromShortURL(userID, urlDatabase, shortURL);
@@ -110,7 +102,7 @@ app.get("/u/:shortURL", (req, res) => {
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const userID = req.session.user_id;
-  if (users[userID] === undefined) {
+  if (!users[userID]) {
     return res.send("please login");
   } else {
     for (let url in urlDatabase) {
@@ -133,31 +125,39 @@ app.post('/urls/:id', (req, res) => {
   const userID = req.session.user_id;
   if (!users[userID]) {
     return res.send("please login");
-  } else {
-    urlDatabase[shortURL] = {
-      longURL: newURL,
-      userID: userID
-    };
-    res.redirect('/urls');
+  } 
+  if (!Object.keys(getUrlsOfUser(userID, urlDatabase)).includes(shortURL)) {
+    return res.send("this shortURL is not yours");
   }
+  urlDatabase[shortURL] = {
+    longURL: newURL,
+    userID: userID
+  };
+    res.redirect('/urls');
 });
 
 //delete element
 app.post('/urls/:shortURL/delete', (req, res) => {
-  // const userID = req.session.user_id;
-  // if (users[userID] === undefined) {
-  //   return res.redirect("/login");
-  // } else {
-    const shortURL = req.params.shortURL;
-    delete urlDatabase[shortURL];
-    res.redirect("/urls");
-  // }
+  const userID = req.session.user_id;
+  if (!users[userID]) {
+    return res.redirect("/login");
+  }
+  if (!Object.keys(urlDatabase).includes(shortURL)) {
+    return res.send("this shortURL does not exist");
+  }
+  if (!Object.keys(getUrlsOfUser(userID, urlDatabase)).includes(shortURL)) {
+    return res.send("this shortURL is not yours");
+  } 
+  const shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
+  res.redirect("/urls");
+  
 });
 
 //login
 app.get("/login", (req, res) => {
   const userID = req.session.user_id;
-  if (users[userID] !== undefined) {
+  if (users[userID]) {
     return res.redirect("/urls");
   } else {
     return res.render("urls_login", { user: null });
@@ -167,7 +167,7 @@ app.get("/login", (req, res) => {
 //register
 app.get("/register", (req, res) => {
   const userID = req.session.user_id;
-  if (users[userID] !== undefined) {
+  if (users[userID]) {
     return res.redirect("/urls");
   } else {
     return res.render("urls_register", { user: null });
@@ -186,23 +186,7 @@ app.post("/login", (req, res) => {
       }
       req.session.user_id = user.id;
       res.redirect("/urls");
-    })
-
-      // const hashedPassword = bcrypt.hashSync(password, 10);
-      // bcrypt.compare(user.password, hashedPassword)
-      //   .then((result) => {
-      //     if (result) {
-      //       req.session.user_id = user.id;
-      //       return res.redirect("/urls");
-      //     } else {
-      //       
-      //     }
-      //   })
-    // } else {
-  //   // 
-  //   // }
-  // }
-
+    })      
 
 //register post
 app.post("/register", (req, res) => {
@@ -212,10 +196,9 @@ app.post("/register", (req, res) => {
   if (email === '' || password === '') {
     return res.status(400).send('please enter the email and password');
   }
-  for (let key in users) {
-    if (users[key].email === email) {
-      return res.status(400).send('this email already used');
-    }
+  let user = getUserByEmail(email,users)
+  if(user){
+    return res.status(400).send('this email already used');
   }
   users[user_id] = { id: user_id, email, password: hashedPassword };
   req.session.user_id = user_id;
