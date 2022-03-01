@@ -51,7 +51,7 @@ const users = {
 
 app.get("/", (req, res) => {
   const userID = req.session.user_id;
-  if (users[userID] === undefined) {
+  if (!users[userID]) {
     return res.redirect("/login");
   } else {
     return res.redirect("/urls");
@@ -64,6 +64,7 @@ app.get("/urls", (req, res) => {
   if (!users[userID]) {
     return res.send("please login");
   } else {
+    // create a new object for each user
     const urlDatabase2 = getUrlsOfUser(userID,urlDatabase);
     const templateVars = { urls: urlDatabase2, user: users[userID] };
     res.render("urls_index", templateVars);
@@ -83,13 +84,13 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
   const userID = req.session.user_id;
+  let url = checkShortURL(userID, urlDatabase, shortURL);
   if (!users[userID]) {
     return res.send("please login");
   } else {
-    let url = checkShortURL(userID, urlDatabase, shortURL);
-      if (url !== shortURL) {
-      return res.send('please write the right shortURL')
-    } else {
+    if (url !== shortURL) {
+    return res.send('please write the right shortURL')
+  } else {
     const templateVars = { shortURL, user: users[userID] };
     return res.render("urls_show", templateVars);
     }
@@ -130,7 +131,8 @@ app.post('/urls/:shortURL', (req, res) => {
   const url = checkShortURL(userID, urlDatabase, shortURL);
   if (!users[userID]) {
     res.send("please login");
-  } 
+  }
+  // make sure every users can access their own shortURL
   if (url !== shortURL) {
     res.send("please write the right shortURL");
   }
@@ -152,6 +154,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   if (!users[userID]) {
     return res.redirect("/login");
   }
+  // // make sure every users can edit their own shortURL
   if (url !== shortURL) {
     return res.send("this shortURL does not exist");
   }
@@ -160,7 +163,6 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   }
   delete urlDatabase[shortURL];
   res.redirect("/urls");
-  
 });
 
 //login
@@ -186,16 +188,16 @@ app.get("/register", (req, res) => {
 //login post
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-    let user = getUserByEmail(email, users);
-    if(!user) {
-      return res.send("Please login with the right email");
-    } 
-    if (!bcrypt.compareSync(password, user.password)){
-        return res.status(403).send("please enter the right password");
-      }
-      req.session.user_id = user.id;
-      res.redirect("/urls");
-    })      
+  let user = getUserByEmail(email, users);
+  if(!user) {
+    return res.send("Please login with the right email");
+  } 
+  if (!bcrypt.compareSync(password, user.password)){
+    return res.status(403).send("please enter the right password");
+  }
+  req.session.user_id = user.id;
+  res.redirect("/urls");
+})      
 
 //register post
 app.post("/register", (req, res) => {
