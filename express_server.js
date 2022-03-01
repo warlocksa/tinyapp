@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
-const { getUserByEmail, getUrlsOfUser, getlongURLFromShortURL,generateRandomString } = require('./helpers.js');
+const { getUserByEmail, getUrlsOfUser, checkShortURL, generateRandomString } = require('./helpers.js');
 const { send } = require("express/lib/response");
 
 
@@ -36,9 +36,17 @@ const urlDatabase = {
   }
 };
 
-//empty the database
 const users = {
-  
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "pwd"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "pwd2"
+  }
 };
 
 app.get("/", (req, res) => {
@@ -78,7 +86,7 @@ app.get("/urls/:shortURL", (req, res) => {
   if (!users[userID]) {
     return res.send("please login");
   } else {
-    let url = getlongURLFromShortURL(userID, urlDatabase, shortURL);
+    let url = checkShortURL(userID, urlDatabase, shortURL);
       if (url !== shortURL) {
       return res.send('please write the right shortURL')
     } else {
@@ -105,29 +113,29 @@ app.post("/urls", (req, res) => {
   if (!users[userID]) {
     return res.send("please login");
   } else {
-    for (let url in urlDatabase) {
-      if (longURL !== urlDatabase[url][longURL]) {
-        const shortURL = generateRandomString();
-        urlDatabase[shortURL] = {
-          longURL: longURL,
-          userID: userID
-        }
-      return res.redirect(`/urls/${shortURL}`);
-      }
+    const shortURL = generateRandomString();
+    urlDatabase[shortURL] = {
+      longURL: longURL,
+      userID: userID
     }
+  res.redirect(`/urls/${shortURL}`);
   }
 });
 
-//edit page
-app.post('/urls/:id', (req, res) => {
-  const shortURL = req.params.id;
+//aqual to the GET /urls/:id page, function is edit
+app.post('/urls/:shortURL', (req, res) => {
+  const shortURL = req.params.shortURL;
   const newURL = req.body.longURL;
   const userID = req.session.user_id;
+  const url = checkShortURL(userID, urlDatabase, shortURL);
   if (!users[userID]) {
-    return res.send("please login");
+    res.send("please login");
   } 
-  if (!Object.keys(getUrlsOfUser(userID, urlDatabase)).includes(shortURL)) {
-    return res.send("this shortURL is not yours");
+  if (url !== shortURL) {
+    res.send("please write the right shortURL");
+  }
+  if (urlDatabase[url].userID !== userID) {
+    res.send("it is not your shortURL")
   }
   urlDatabase[shortURL] = {
     longURL: newURL,
@@ -139,16 +147,17 @@ app.post('/urls/:id', (req, res) => {
 //delete element
 app.post('/urls/:shortURL/delete', (req, res) => {
   const userID = req.session.user_id;
+  const shortURL = req.params.shortURL;
+  const url = checkShortURL(userID, urlDatabase, shortURL);
   if (!users[userID]) {
     return res.redirect("/login");
   }
-  if (!Object.keys(urlDatabase).includes(shortURL)) {
+  if (url !== shortURL) {
     return res.send("this shortURL does not exist");
   }
-  if (!Object.keys(getUrlsOfUser(userID, urlDatabase)).includes(shortURL)) {
-    return res.send("this shortURL is not yours");
-  } 
-  const shortURL = req.params.shortURL;
+  if (urlDatabase[url].userID !== userID) {
+    res.send("it is not your shortURL")
+  }
   delete urlDatabase[shortURL];
   res.redirect("/urls");
   

@@ -19,7 +19,7 @@ const getUrlsOfUser = (userId, database) => {
   return urlObj;
 };
 
-const getlongURLFromShortURL = (userId, database, shortURL) => {
+const checkShortURL = (userId, database, shortURL) => {
   for (let surl in database) {
     if(database[surl].userID === userId && surl === shortURL) {
       return surl;
@@ -33,4 +33,4 @@ const generateRandomString = () => {
   return Math.random().toString(36).substr(2, 6);
 }
 
-module.exports = { getUserByEmail, getUrlsOfUser, getlongURLFromShortURL, generateRandomString };
+module.exports = { getUserByEmail, getUrlsOfUser, checkShortURL, generateRandomString };
