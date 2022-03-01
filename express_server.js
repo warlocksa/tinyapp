@@ -2,16 +2,12 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
-
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
 const { getUserByEmail, getUrlsOfUser, checkShortURL, generateRandomString } = require("./helpers.js");
 const { send } = require("express/lib/response");
 
-
-
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(cookieSession({
   name: "session",
   keys: ["my secret key", "yet another secret key"]
