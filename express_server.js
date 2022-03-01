@@ -3,9 +3,9 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 
-const cookieSession = require('cookie-session');
-const bcrypt = require('bcryptjs');
-const { getUserByEmail, getUrlsOfUser, checkShortURL, generateRandomString } = require('./helpers.js');
+const cookieSession = require("cookie-session");
+const bcrypt = require("bcryptjs");
+const { getUserByEmail, getUrlsOfUser, checkShortURL, generateRandomString } = require("./helpers.js");
 const { send } = require("express/lib/response");
 
 
@@ -13,8 +13,8 @@ const { send } = require("express/lib/response");
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(cookieSession({
-  name: 'session',
-  keys: ['my secret key', 'yet another secret key']
+  name: "session",
+  keys: ["my secret key", "yet another secret key"]
 }));
 
 app.set("view engine", "ejs");
@@ -23,11 +23,11 @@ app.set("view engine", "ejs");
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
-    userID: 'userRandomID',
+    userID: "userRandomID",
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
-    userID: 'user2RandomID',
+    userID: "user2RandomID",
     
   }, 
   asdsa: {
@@ -89,7 +89,7 @@ app.get("/urls/:shortURL", (req, res) => {
     return res.send("please login");
   } else {
     if (url !== shortURL) {
-    return res.send('please write the right shortURL')
+    return res.send("please write the right shortURL")
   } else {
     const templateVars = { shortURL, user: users[userID] };
     return res.render("urls_show", templateVars);
@@ -124,7 +124,7 @@ app.post("/urls", (req, res) => {
 });
 
 //aqual to the GET /urls/:id page, function is edit
-app.post('/urls/:shortURL', (req, res) => {
+app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const newURL = req.body.longURL;
   const userID = req.session.user_id;
@@ -143,11 +143,11 @@ app.post('/urls/:shortURL', (req, res) => {
     longURL: newURL,
     userID: userID
   };
-    res.redirect('/urls');
+    res.redirect("/urls");
 });
 
 //delete element
-app.post('/urls/:shortURL/delete', (req, res) => {
+app.post("/urls/:shortURL/delete", (req, res) => {
   const userID = req.session.user_id;
   const shortURL = req.params.shortURL;
   const url = checkShortURL(userID, urlDatabase, shortURL);
@@ -204,12 +204,12 @@ app.post("/register", (req, res) => {
   const { email, password } = req.body;
   const user_id = generateRandomString();
   const hashedPassword = bcrypt.hashSync(password, 10);
-  if (email === '' || password === '') {
-    return res.status(400).send('please enter the email and password');
+  if (email === "" || password === "") {
+    return res.status(400).send("please enter the email and password");
   }
   let user = getUserByEmail(email,users)
   if(user){
-    return res.status(400).send('this email already used');
+    return res.status(400).send("this email already used");
   }
   users[user_id] = { id: user_id, email, password: hashedPassword };
   req.session.user_id = user_id;
